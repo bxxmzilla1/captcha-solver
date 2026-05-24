@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../api-src/health.ts"],
-  "sourcesContent": ["import type { VercelRequest, VercelResponse } from \"@vercel/node\";\n\nexport default function handler(_req: VercelRequest, res: VercelResponse) {\n  res.status(200).json({\n    status: \"ok\",\n    message: \"Captcha Solver API is healthy\",\n  });\n}\n"],
-  "mappings": ";;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAEe,SAAR,QAAyB,MAAqB,KAAqB;AACxE,MAAI,OAAO,GAAG,EAAE,KAAK;AAAA,IACnB,QAAQ;AAAA,IACR,SAAS;AAAA,EACX,CAAC;AACH;",
-  "names": []
-}
