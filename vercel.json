@@ -8,9 +8,13 @@
     }
   ],
   "functions": {
-    "api/**/*.ts": {
+    "api/solve-captcha.js": {
       "maxDuration": 60,
-      "includeFiles": "lib/**"
+      "memory": 1024
+    },
+    "api/solve.js": {
+      "maxDuration": 60,
+      "memory": 1024
     }
   },
   "headers": [
