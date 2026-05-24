@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { resolveApiKey } from "../lib/api-key";
 import { solveCaptcha } from "../lib/captcha";
 import { sendJson } from "../lib/http-json";
+import { formatApiError } from "../lib/format-error";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -31,10 +32,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return sendJson(res, 200, { success: true, result });
   } catch (error: unknown) {
     console.error("CAPTCHA solving failed:", error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : "An unexpected error occurred while solving the CAPTCHA.";
+    const message = formatApiError(
+      error,
+      "An unexpected error occurred while solving the CAPTCHA."
+    );
     return sendJson(res, 500, { success: false, error: message });
   }
 }

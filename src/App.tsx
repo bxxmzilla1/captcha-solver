@@ -765,7 +765,7 @@ console.log("Decoded characters:", data.text);`}
                   <h3 className="text-white font-semibold text-xs uppercase tracking-wider font-mono">Processing Output</h3>
                 </div>
                 <span className="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-indigo-500/20">
-                  Gemini-2.0-Flash
+                  Gemini-2.5-Flash
                 </span>
               </div>
 

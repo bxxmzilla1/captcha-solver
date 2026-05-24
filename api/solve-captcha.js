@@ -40695,6 +40695,7 @@ function getGeminiClient(apiKey) {
 }
 
 // lib/captcha.ts
+var GEMINI_VISION_MODEL = "gemini-2.5-flash";
 function parseBase64Image(image) {
   const match = image.match(/^data:(image\/[a-zA-Z0-9.-]+);base64,(.+)$/);
   if (match) {
@@ -40717,7 +40718,7 @@ Task instructions:
 3. Transcribe standard alphanumeric characters strictly as they appear, keeping the rules in mind.
 4. Output your analysis in the required JSON structure.`;
   const response = await client.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: GEMINI_VISION_MODEL,
     contents: [
       {
         inlineData: {
@@ -40767,6 +40768,21 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+// lib/format-error.ts
+function formatApiError(error, fallback) {
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
+  try {
+    const parsed = JSON.parse(error.message);
+    if (parsed.error?.message) {
+      return parsed.error.message;
+    }
+  } catch {
+  }
+  return error.message || fallback;
+}
+
 // api-src/solve-captcha.ts
 async function handler(req, res) {
   if (req.method !== "POST") {
@@ -40791,7 +40807,10 @@ async function handler(req, res) {
     return sendJson(res, 200, { success: true, result });
   } catch (error) {
     console.error("CAPTCHA solving failed:", error);
-    const message = error instanceof Error ? error.message : "An unexpected error occurred while solving the CAPTCHA.";
+    const message = formatApiError(
+      error,
+      "An unexpected error occurred while solving the CAPTCHA."
+    );
     return sendJson(res, 500, { success: false, error: message });
   }
 }

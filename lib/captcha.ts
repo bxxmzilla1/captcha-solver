@@ -1,6 +1,8 @@
 import { Type } from "@google/genai";
 import { getGeminiClient } from "./gemini";
 
+export const GEMINI_VISION_MODEL = "gemini-2.5-flash";
+
 export interface ParsedImage {
   mimeType: string;
   base64Data: string;
@@ -37,7 +39,7 @@ Task instructions:
 4. Output your analysis in the required JSON structure.`;
 
   const response = await client.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: GEMINI_VISION_MODEL,
     contents: [
       {
         inlineData: {
@@ -108,7 +110,7 @@ Instructions:
 3. Return a clean JSON output containing both the transcribed text and the final answer.`;
 
   const response = await client.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: GEMINI_VISION_MODEL,
     contents: [
       {
         inlineData: {

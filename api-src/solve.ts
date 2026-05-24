@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { resolveApiKey } from "../lib/api-key";
 import { solveScreenshot } from "../lib/captcha";
 import { sendJson } from "../lib/http-json";
+import { formatApiError } from "../lib/format-error";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -51,10 +52,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error: unknown) {
     console.error("Simple Solve API Error:", error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : "An error occurred while deciphering the screenshot.";
+    const message = formatApiError(
+      error,
+      "An error occurred while deciphering the screenshot."
+    );
     return sendJson(res, 500, { success: false, error: message });
   }
 }

@@ -40695,6 +40695,7 @@ function getGeminiClient(apiKey) {
 }
 
 // lib/captcha.ts
+var GEMINI_VISION_MODEL = "gemini-2.5-flash";
 function parseBase64Image(image) {
   const match = image.match(/^data:(image\/[a-zA-Z0-9.-]+);base64,(.+)$/);
   if (match) {
@@ -40716,7 +40717,7 @@ Instructions:
 2. If this text is a clear math problem, find the written text (e.g., "7 + 2") and calculate the math result (e.g., "9").
 3. Return a clean JSON output containing both the transcribed text and the final answer.`;
   const response = await client.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: GEMINI_VISION_MODEL,
     contents: [
       {
         inlineData: {
@@ -40762,6 +40763,21 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+// lib/format-error.ts
+function formatApiError(error, fallback) {
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
+  try {
+    const parsed = JSON.parse(error.message);
+    if (parsed.error?.message) {
+      return parsed.error.message;
+    }
+  } catch {
+  }
+  return error.message || fallback;
+}
+
 // api-src/solve.ts
 async function handler(req, res) {
   if (req.method !== "POST") {
@@ -40803,7 +40819,10 @@ async function handler(req, res) {
     });
   } catch (error) {
     console.error("Simple Solve API Error:", error);
-    const message = error instanceof Error ? error.message : "An error occurred while deciphering the screenshot.";
+    const message = formatApiError(
+      error,
+      "An error occurred while deciphering the screenshot."
+    );
     return sendJson(res, 500, { success: false, error: message });
   }
 }
