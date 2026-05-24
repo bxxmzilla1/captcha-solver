@@ -40755,10 +40755,17 @@ Instructions:
   return JSON.parse(responseText.trim());
 }
 
+// lib/http-json.ts
+function sendJson(res, status, body) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(body));
+}
+
 // api-src/solve.ts
 async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return sendJson(res, 405, { error: "Method not allowed" });
   }
   try {
     let base64Input = "";
@@ -40771,7 +40778,7 @@ async function handler(req, res) {
       base64Input = req.body.screenshot || req.body.image || req.body.base64;
     }
     if (!base64Input) {
-      return res.status(400).json({
+      return sendJson(res, 400, {
         success: false,
         error: "Missing image data. Please supply 'screenshot', 'image', or raw base64 in the request body."
       });
@@ -40787,7 +40794,7 @@ async function handler(req, res) {
       length: String(length),
       apiKey: resolvedKey
     });
-    return res.status(200).json({
+    return sendJson(res, 200, {
       success: true,
       text: decoded.text,
       mathResult: decoded.mathResult || null,
@@ -40797,7 +40804,7 @@ async function handler(req, res) {
   } catch (error) {
     console.error("Simple Solve API Error:", error);
     const message = error instanceof Error ? error.message : "An error occurred while deciphering the screenshot.";
-    return res.status(500).json({ success: false, error: message });
+    return sendJson(res, 500, { success: false, error: message });
   }
 }
 /*! Bundled license information:

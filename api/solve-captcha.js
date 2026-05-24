@@ -40760,15 +40760,22 @@ Task instructions:
   return JSON.parse(responseText.trim());
 }
 
+// lib/http-json.ts
+function sendJson(res, status, body) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(body));
+}
+
 // api-src/solve-captcha.ts
 async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return sendJson(res, 405, { error: "Method not allowed" });
   }
   try {
     const { image, type, caseSensitive, length, apiKey } = req.body ?? {};
     if (!image) {
-      return res.status(400).json({ error: "Image data is required" });
+      return sendJson(res, 400, { error: "Image data is required" });
     }
     const resolvedKey = resolveApiKey({
       header: req.headers["x-gemini-api-key"],
@@ -40781,11 +40788,11 @@ async function handler(req, res) {
       length: length ?? "Any",
       apiKey: resolvedKey
     });
-    return res.status(200).json({ success: true, result });
+    return sendJson(res, 200, { success: true, result });
   } catch (error) {
     console.error("CAPTCHA solving failed:", error);
     const message = error instanceof Error ? error.message : "An unexpected error occurred while solving the CAPTCHA.";
-    return res.status(500).json({ success: false, error: message });
+    return sendJson(res, 500, { success: false, error: message });
   }
 }
 /*! Bundled license information:

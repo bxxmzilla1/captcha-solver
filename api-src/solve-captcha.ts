@@ -1,17 +1,18 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { resolveApiKey } from "../lib/api-key";
 import { solveCaptcha } from "../lib/captcha";
+import { sendJson } from "../lib/http-json";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return sendJson(res, 405, { error: "Method not allowed" });
   }
 
   try {
     const { image, type, caseSensitive, length, apiKey } = req.body ?? {};
 
     if (!image) {
-      return res.status(400).json({ error: "Image data is required" });
+      return sendJson(res, 400, { error: "Image data is required" });
     }
 
     const resolvedKey = resolveApiKey({
@@ -27,13 +28,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       apiKey: resolvedKey,
     });
 
-    return res.status(200).json({ success: true, result });
+    return sendJson(res, 200, { success: true, result });
   } catch (error: unknown) {
     console.error("CAPTCHA solving failed:", error);
     const message =
       error instanceof Error
         ? error.message
         : "An unexpected error occurred while solving the CAPTCHA.";
-    return res.status(500).json({ success: false, error: message });
+    return sendJson(res, 500, { success: false, error: message });
   }
 }

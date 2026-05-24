@@ -22,8 +22,17 @@ __export(health_exports, {
   default: () => handler
 });
 module.exports = __toCommonJS(health_exports);
+
+// lib/http-json.ts
+function sendJson(res, status, body) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(body));
+}
+
+// api-src/health.ts
 function handler(_req, res) {
-  res.status(200).json({
+  sendJson(res, 200, {
     status: "ok",
     message: "Captcha Solver API is healthy"
   });

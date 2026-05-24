@@ -1,10 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { resolveApiKey } from "../lib/api-key";
 import { solveScreenshot } from "../lib/captcha";
+import { sendJson } from "../lib/http-json";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return sendJson(res, 405, { error: "Method not allowed" });
   }
 
   try {
@@ -21,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (!base64Input) {
-      return res.status(400).json({
+      return sendJson(res, 400, {
         success: false,
         error:
           "Missing image data. Please supply 'screenshot', 'image', or raw base64 in the request body.",
@@ -41,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       apiKey: resolvedKey,
     });
 
-    return res.status(200).json({
+    return sendJson(res, 200, {
       success: true,
       text: decoded.text,
       mathResult: decoded.mathResult || null,
@@ -54,6 +55,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error instanceof Error
         ? error.message
         : "An error occurred while deciphering the screenshot.";
-    return res.status(500).json({ success: false, error: message });
+    return sendJson(res, 500, { success: false, error: message });
   }
 }
