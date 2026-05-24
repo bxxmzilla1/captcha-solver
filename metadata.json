@@ -1,0 +1,6 @@
+{
+  "name": "Captcha Solver",
+  "description": "An intelligent single-screen utility to solve text and mathematical CAPTCHAs from uploaded or pasted images.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
