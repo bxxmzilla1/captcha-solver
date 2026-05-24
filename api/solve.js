@@ -22091,18 +22091,6 @@ __export(solve_exports, {
 });
 module.exports = __toCommonJS(solve_exports);
 
-// lib/api-key.ts
-function resolveApiKey(options) {
-  const fromHeader = Array.isArray(options.header) ? options.header[0] : options.header;
-  const key = (fromHeader || options.body || process.env.GEMINI_API_KEY || "").trim();
-  if (!key) {
-    throw new Error(
-      "Gemini API key is required. Enter it in the app settings or set GEMINI_API_KEY on the server."
-    );
-  }
-  return key;
-}
-
 // node_modules/@google/genai/dist/node/index.mjs
 var import_p_retry = __toESM(require_p_retry(), 1);
 var import_google_auth_library = __toESM(require_src5(), 1);
@@ -40670,28 +40658,31 @@ function getApiKeyFromEnv() {
   return envGoogleApiKey || envGeminiApiKey || void 0;
 }
 
-// lib/gemini.ts
-var clients = /* @__PURE__ */ new Map();
-function getGeminiClient(apiKey) {
-  const key = (apiKey || process.env.GEMINI_API_KEY || "").trim();
+// lib/api-key.ts
+function getServerApiKey() {
+  const key = (process.env.GEMINI_API_KEY || "").trim();
   if (!key) {
     throw new Error(
-      "Gemini API key is required. Enter it in the app settings or set GEMINI_API_KEY on the server."
+      "GEMINI_API_KEY is not configured. Set it in your Vercel environment variables."
     );
   }
-  let client = clients.get(key);
-  if (!client) {
-    client = new GoogleGenAI({
-      apiKey: key,
+  return key;
+}
+
+// lib/gemini.ts
+var aiClient = null;
+function getGeminiClient() {
+  if (!aiClient) {
+    aiClient = new GoogleGenAI({
+      apiKey: getServerApiKey(),
       httpOptions: {
         headers: {
           "User-Agent": "clearcaptcha-decoder"
         }
       }
     });
-    clients.set(key, client);
   }
-  return client;
+  return aiClient;
 }
 
 // lib/captcha.ts
@@ -40705,7 +40696,7 @@ function parseBase64Image(image) {
 }
 async function solveScreenshot(options) {
   const { mimeType, base64Data } = parseBase64Image(options.image);
-  const client = getGeminiClient(options.apiKey);
+  const client = getGeminiClient();
   const genericPrompt = `Thoroughly inspect this screenshot containing a CAPTCHA challenge or textual verification puzzle. Your principal instruction is to decode the character symbols precisely.
 Parameters:
 - Mode hint: ${options.type}
@@ -40756,13 +40747,6 @@ Instructions:
   return JSON.parse(responseText.trim());
 }
 
-// lib/http-json.ts
-function sendJson(res, status, body) {
-  res.statusCode = status;
-  res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify(body));
-}
-
 // lib/format-error.ts
 function formatApiError(error, fallback) {
   if (!(error instanceof Error)) {
@@ -40776,6 +40760,13 @@ function formatApiError(error, fallback) {
   } catch {
   }
   return error.message || fallback;
+}
+
+// lib/http-json.ts
+function sendJson(res, status, body) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(body));
 }
 
 // api-src/solve.ts
@@ -40799,16 +40790,11 @@ async function handler(req, res) {
         error: "Missing image data. Please supply 'screenshot', 'image', or raw base64 in the request body."
       });
     }
-    const resolvedKey = resolveApiKey({
-      header: req.headers["x-gemini-api-key"],
-      body: req.body?.apiKey
-    });
     const decoded = await solveScreenshot({
       image: base64Input,
       type: String(configType),
       caseSensitive,
-      length: String(length),
-      apiKey: resolvedKey
+      length: String(length)
     });
     return sendJson(res, 200, {
       success: true,

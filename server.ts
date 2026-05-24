@@ -3,7 +3,6 @@ import path from "path";
 import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { solveCaptcha, solveScreenshot } from "./lib/captcha";
-import { resolveApiKey } from "./lib/api-key";
 
 dotenv.config();
 
@@ -20,23 +19,17 @@ async function startServer() {
 
   app.post("/api/solve-captcha", async (req, res) => {
     try {
-      const { image, type, caseSensitive, length, apiKey } = req.body;
+      const { image, type, caseSensitive, length } = req.body;
 
       if (!image) {
         return res.status(400).json({ error: "Image data is required" });
       }
-
-      const resolvedKey = resolveApiKey({
-        header: req.headers["x-gemini-api-key"],
-        body: apiKey,
-      });
 
       const result = await solveCaptcha({
         image,
         type: type ?? "alphanumeric",
         caseSensitive: caseSensitive !== false,
         length: length ?? "Any",
-        apiKey: resolvedKey,
       });
 
       res.json({ success: true, result });
@@ -72,17 +65,11 @@ async function startServer() {
         });
       }
 
-      const resolvedKey = resolveApiKey({
-        header: req.headers["x-gemini-api-key"],
-        body: req.body?.apiKey,
-      });
-
       const decoded = await solveScreenshot({
         image: base64Input,
         type: String(configType),
         caseSensitive,
         length: String(length),
-        apiKey: resolvedKey,
       });
 
       res.json({

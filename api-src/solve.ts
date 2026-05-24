@@ -1,8 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { resolveApiKey } from "../lib/api-key";
 import { solveScreenshot } from "../lib/captcha";
-import { sendJson } from "../lib/http-json";
 import { formatApiError } from "../lib/format-error";
+import { sendJson } from "../lib/http-json";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -30,17 +29,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const resolvedKey = resolveApiKey({
-      header: req.headers["x-gemini-api-key"],
-      body: req.body?.apiKey,
-    });
-
     const decoded = await solveScreenshot({
       image: base64Input,
       type: String(configType),
       caseSensitive,
       length: String(length),
-      apiKey: resolvedKey,
     });
 
     return sendJson(res, 200, {

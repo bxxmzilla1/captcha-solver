@@ -21,10 +21,9 @@ export async function solveCaptcha(options: {
   type: string;
   caseSensitive: boolean;
   length: string;
-  apiKey?: string;
 }) {
   const { mimeType, base64Data } = parseBase64Image(options.image);
-  const client = getGeminiClient(options.apiKey);
+  const client = getGeminiClient();
 
   const userInstructionPrompt = `Analyze the provided CAPTCHA image with meticulous accuracy.
 Rules specified by the user:
@@ -93,10 +92,9 @@ export async function solveScreenshot(options: {
   type: string;
   caseSensitive: boolean;
   length: string;
-  apiKey?: string;
 }) {
   const { mimeType, base64Data } = parseBase64Image(options.image);
-  const client = getGeminiClient(options.apiKey);
+  const client = getGeminiClient();
 
   const genericPrompt = `Thoroughly inspect this screenshot containing a CAPTCHA challenge or textual verification puzzle. Your principal instruction is to decode the character symbols precisely.
 Parameters:
