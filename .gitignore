@@ -8,5 +8,5 @@ coverage/
 !.env.example
 .vercel
 dev-dist/
-api/*.cjs
-api/*.cjs.map
+api/*.js
+api/*.js.map

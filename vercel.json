@@ -8,7 +8,7 @@
     }
   ],
   "functions": {
-    "api/**/*.cjs": {
+    "api/**/*.js": {
       "maxDuration": 60
     }
   },

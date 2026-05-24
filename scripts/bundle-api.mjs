@@ -1,14 +1,17 @@
 import { build } from "esbuild";
-import { rmSync } from "fs";
+import { rmSync, writeFileSync, mkdirSync } from "fs";
 
 const handlers = ["health", "solve-captcha", "solve"];
 
 rmSync("api", { recursive: true, force: true });
+mkdirSync("api", { recursive: true });
+
+writeFileSync("api/package.json", JSON.stringify({ type: "commonjs" }, null, 2));
 
 for (const name of handlers) {
   await build({
     entryPoints: [`api-src/${name}.ts`],
-    outfile: `api/${name}.cjs`,
+    outfile: `api/${name}.js`,
     bundle: true,
     platform: "node",
     format: "cjs",
@@ -22,4 +25,4 @@ for (const name of handlers) {
   });
 }
 
-console.log("API handlers bundled to api/*.cjs");
+console.log("API handlers bundled to api/*.js");
