@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { resolveApiKey } from "../lib/api-key";
 import { solveCaptcha } from "../lib/captcha";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -7,17 +8,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { image, type, caseSensitive, length } = req.body ?? {};
+    const { image, type, caseSensitive, length, apiKey } = req.body ?? {};
 
     if (!image) {
       return res.status(400).json({ error: "Image data is required" });
     }
+
+    const resolvedKey = resolveApiKey({
+      header: req.headers["x-gemini-api-key"],
+      body: apiKey,
+    });
 
     const result = await solveCaptcha({
       image,
       type: type ?? "alphanumeric",
       caseSensitive: caseSensitive !== false,
       length: length ?? "Any",
+      apiKey: resolvedKey,
     });
 
     return res.status(200).json({ success: true, result });

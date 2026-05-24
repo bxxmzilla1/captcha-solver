@@ -18,9 +18,14 @@ import {
   Calculator, 
   Layers, 
   Scissors,
-  HelpCircle
+  HelpCircle,
+  Key,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { type CaptchaConfig, type CaptchaStyle, type CaptchaSolvedResult, type CaptchaHistoryItem } from "./types";
+
+const GEMINI_API_KEY_STORAGE = "cipher_gemini_api_key";
 
 export default function App() {
   // Config & State
@@ -42,6 +47,10 @@ export default function App() {
   // Stats
   const [totalSolved, setTotalSolved] = useState<number>(0);
 
+  // Gemini API key (stored locally in browser)
+  const [apiKey, setApiKey] = useState<string>("");
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+
   // References
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mainDropzoneRef = useRef<HTMLDivElement | null>(null);
@@ -62,6 +71,11 @@ export default function App() {
       } else {
         setTotalSolved(0);
       }
+
+      const storedApiKey = localStorage.getItem(GEMINI_API_KEY_STORAGE);
+      if (storedApiKey) {
+        setApiKey(storedApiKey);
+      }
     } catch (e) {
       console.error("Failed to load local storage stats", e);
     }
@@ -76,6 +90,25 @@ export default function App() {
   const saveHistory = (updatedHistory: CaptchaHistoryItem[]) => {
     setHistory(updatedHistory);
     localStorage.setItem("cipher_solve_history", JSON.stringify(updatedHistory));
+  };
+
+  const saveApiKey = (key: string) => {
+    setApiKey(key);
+    if (key.trim()) {
+      localStorage.setItem(GEMINI_API_KEY_STORAGE, key.trim());
+    } else {
+      localStorage.removeItem(GEMINI_API_KEY_STORAGE);
+    }
+  };
+
+  const buildApiHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (apiKey.trim()) {
+      headers["X-Gemini-Api-Key"] = apiKey.trim();
+    }
+    return headers;
   };
 
   // Clipboard Paste capture initialization
@@ -164,6 +197,11 @@ export default function App() {
       return;
     }
 
+    if (!apiKey.trim()) {
+      setSolveError("Enter your Gemini API key in the sidebar settings first.");
+      return;
+    }
+
     setIsSolving(true);
     setSolveError(null);
     setCurrentResult(null);
@@ -172,9 +210,7 @@ export default function App() {
     try {
       const response = await fetch("/api/solve-captcha", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: buildApiHeaders(),
         body: JSON.stringify({
           image: uploadedImage,
           type: config.type,
@@ -302,6 +338,51 @@ export default function App() {
                 <span className="text-lg font-mono font-bold text-white tracking-tight">{totalSolved}</span>
               </div>
             </div>
+          </div>
+
+          {/* Gemini API Key */}
+          <div className="p-5 border-b border-[#262629] flex flex-col gap-3">
+            <div className="flex items-center gap-1.5">
+              <Key className="w-3.5 h-3.5 text-gray-400" />
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Gemini API Key</h2>
+            </div>
+            <div className="relative">
+              <input
+                type={showApiKey ? "text" : "password"}
+                value={apiKey}
+                onChange={(e) => saveApiKey(e.target.value)}
+                placeholder="Paste your API key here"
+                className="w-full bg-[#1C1C21] border border-[#262629] rounded-xl pl-3 pr-10 py-2.5 text-xs font-mono text-gray-300 placeholder:text-gray-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                id="input-gemini-api-key"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey((prev) => !prev)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-gray-300 transition-colors"
+                title={showApiKey ? "Hide API key" : "Show API key"}
+              >
+                {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+            <p className="text-[9px] text-gray-500 leading-relaxed">
+              Stored locally in your browser. Get a free key from{" "}
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
+              >
+                Google AI Studio
+              </a>
+              .
+            </p>
+            {apiKey.trim() ? (
+              <span className="text-[10px] text-emerald-400 font-semibold">API key saved</span>
+            ) : (
+              <span className="text-[10px] text-amber-400 font-semibold">Required to solve CAPTCHAs</span>
+            )}
           </div>
 
           {/* Model parameters / Solver options */}

@@ -1,23 +1,27 @@
 import { GoogleGenAI } from "@google/genai";
 
-let aiClient: GoogleGenAI | null = null;
+const clients = new Map<string, GoogleGenAI>();
 
-export function getGeminiClient(): GoogleGenAI {
-  if (!aiClient) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        "GEMINI_API_KEY is missing. Set it in your environment variables."
-      );
-    }
-    aiClient = new GoogleGenAI({
-      apiKey,
+export function getGeminiClient(apiKey?: string): GoogleGenAI {
+  const key = (apiKey || process.env.GEMINI_API_KEY || "").trim();
+  if (!key) {
+    throw new Error(
+      "Gemini API key is required. Enter it in the app settings or set GEMINI_API_KEY on the server."
+    );
+  }
+
+  let client = clients.get(key);
+  if (!client) {
+    client = new GoogleGenAI({
+      apiKey: key,
       httpOptions: {
         headers: {
           "User-Agent": "clearcaptcha-decoder",
         },
       },
     });
+    clients.set(key, client);
   }
-  return aiClient;
+
+  return client;
 }
