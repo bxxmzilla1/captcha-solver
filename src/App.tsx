@@ -183,11 +183,21 @@ export default function App() {
         }),
       });
 
-      const data = await response.json();
+      let data: { success?: boolean; result?: CaptchaSolvedResult; error?: string };
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error(
+          response.ok
+            ? "Server returned an invalid response."
+            : `Server error (${response.status}). The API may not be deployed correctly — check Vercel function logs.`
+        );
+      }
+
       const endTime = performance.now();
       setSolveSpeed(Math.round(endTime - startTime));
 
-      if (data.success && data.result) {
+      if (response.ok && data.success && data.result) {
         const res: CaptchaSolvedResult = data.result;
         setCurrentResult(res);
         
@@ -207,11 +217,15 @@ export default function App() {
         const nextTotal = totalSolved + 1;
         saveStats(nextTotal);
       } else {
-        setSolveError(data.error || "Failed to decode the CAPTCHA image correctly.");
+        setSolveError(data.error || `Request failed (${response.status}). Check Vercel logs and GEMINI_API_KEY.`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      setSolveError("API connection error. Check that the server is running and GEMINI_API_KEY is set.");
+      setSolveError(
+        error instanceof Error
+          ? error.message
+          : "API connection error. Check that the server is running and GEMINI_API_KEY is set."
+      );
     } finally {
       setIsSolving(false);
     }
@@ -670,7 +684,7 @@ console.log("Decoded characters:", data.text);`}
                   <h3 className="text-white font-semibold text-xs uppercase tracking-wider font-mono">Processing Output</h3>
                 </div>
                 <span className="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-lg border border-indigo-500/20">
-                  Gemini-3.5-Flash
+                  Gemini-2.0-Flash
                 </span>
               </div>
 

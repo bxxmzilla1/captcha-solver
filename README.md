@@ -52,6 +52,8 @@ A Progressive Web App (PWA) that decodes text and mathematical CAPTCHAs from upl
    | ------------------ | ------------------ |
    | `GEMINI_API_KEY`   | Your Gemini API key |
 
+   **Important:** After adding or changing env vars, you must **Redeploy** the project (Vercel → Deployments → ⋯ → Redeploy). Env vars are not applied to existing deployments.
+
 4. Deploy. Vercel will serve:
    - Static frontend from `dist/`
    - Serverless API routes from `api/`

@@ -36,7 +36,7 @@ Task instructions:
 4. Output your analysis in the required JSON structure.`;
 
   const response = await client.models.generateContent({
-    model: "gemini-3.5-flash",
+    model: "gemini-2.0-flash",
     contents: [
       {
         inlineData: {
@@ -106,7 +106,7 @@ Instructions:
 3. Return a clean JSON output containing both the transcribed text and the final answer.`;
 
   const response = await client.models.generateContent({
-    model: "gemini-3.5-flash",
+    model: "gemini-2.0-flash",
     contents: [
       {
         inlineData: {
